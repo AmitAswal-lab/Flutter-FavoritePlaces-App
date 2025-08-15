@@ -12,11 +12,17 @@
 .swiftpm/
 migrate_working_dir/
 
+## Local configuration file (API keys, etc.)
+android/local.properties
+
 # IntelliJ related
 *.iml
 *.ipr
 *.iws
 .idea/
+
+# .gitignore file
+.env
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
