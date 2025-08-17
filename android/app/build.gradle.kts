@@ -1,39 +1,54 @@
+// android/app/build.gradle.kts
+
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+import java.util.Properties
+
+// Correctly loads the .env file from the project's root directory
+val envProperties = Properties().apply {
+    val envFile = rootProject.file("../.env") // Navigates up from /android to the root
+    if (envFile.exists()) {
+        envFile.inputStream().use { load(it) }
+    }
 }
 
 android {
     namespace = "com.example.favorite_places"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973" // Or your specific NDK version
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "1.8"
+    }
+
+    // This can remain, it's harmless and might be used by other plugins.
+    buildFeatures {
+        buildConfig = true
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.favorite_places"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // This is the only part needed. It securely provides the key
+        // as a placeholder for the AndroidManifest.xml.
+        manifestPlaceholders["MAPS_API_KEY"] = envProperties.getProperty("MAPS_API_KEY", "")
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+        getByName("release") {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -41,4 +56,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Your dependencies
 }
