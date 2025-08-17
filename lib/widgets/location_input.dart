@@ -30,100 +30,116 @@ class _LocationInputState extends State<LocationInput> {
     return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$long&zoom=16&size=600x300&maptype=roadmap&markers=color:red%7Clabel:A%7C$lat,$long&key=$locationKey';
   }
 
-Future _savedPlace(double latitude, double longitude) async{
-  final url = Uri.parse(
-    'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$locationKey',
-  );
-
-  final response = await http.get(url);
-
-  if (response.statusCode != 200) {
-    throw Exception('Failed to fetch address. Status Code: ${response.statusCode}');
-  }
-
-  final data = json.decode(response.body);
-
-  if (data['results'] == null || (data['results'] as List).isEmpty) {
-    throw Exception('No address found for the given coordinates.');
-  }
-
-  final address = data['results'][0]['formatted_address'];
-
-  setState(() {
-    _pickedlocation = PlaceLocation(
-      latitude: latitude,
-      longitude: longitude,
-      address: address,
+  Future _savedPlace(double latitude, double longitude) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$locationKey',
     );
-    _isGettingLocation = false;
-  });
 
-  widget.onSelectLocation(_pickedlocation!);
-}
+    final response = await http.get(url);
 
-void _getCurrentlocation() async {
-  Location location = Location();
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to fetch address. Status Code: ${response.statusCode}',
+      );
+    }
 
-  // --- Start of Permission and Service Checks ---
+    final data = json.decode(response.body);
 
-  setState(() {
-    _isGettingLocation = true;
-  });
+    if (data['results'] == null || (data['results'] as List).isEmpty) {
+      throw Exception('No address found for the given coordinates.');
+    }
 
-  bool serviceEnabled = await location.serviceEnabled();
-  if (!serviceEnabled) {
-    serviceEnabled = await location.requestService();
+    final address = data['results'][0]['formatted_address'];
+
+    setState(() {
+      _pickedlocation = PlaceLocation(
+        latitude: latitude,
+        longitude: longitude,
+        address: address,
+      );
+      _isGettingLocation = false;
+    });
+
+    widget.onSelectLocation(_pickedlocation!);
+  }
+
+  void _getCurrentlocation() async {
+    Location location = Location();
+
+    setState(() {
+      _isGettingLocation = true;
+    });
+
+    bool serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
-      // User did not enable the location service. Stop.
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        // User did not enable the location service. Stop.
+        setState(() {
+          _isGettingLocation = false;
+        });
+        return;
+      }
+    }
+
+    PermissionStatus permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        // User did not grant location permission. Stop.
+        setState(() {
+          _isGettingLocation = false;
+        });
+        return;
+      }
+    }
+
+    try {
+      final locationData = await location.getLocation();
+      final lat = locationData.latitude;
+      final long = locationData.longitude;
+
+      if (lat == null || long == null) {
+        throw Exception('Could not get latitude or longitude.');
+      }
+
+      _savedPlace(lat, long);
+    } catch (error) {
+      print('An error occurred during location fetching: $error');
       setState(() {
         _isGettingLocation = false;
       });
-      return;
     }
   }
 
-  PermissionStatus permissionGranted = await location.hasPermission();
-  if (permissionGranted == PermissionStatus.denied) {
-    permissionGranted = await location.requestPermission();
-    if (permissionGranted != PermissionStatus.granted) {
-      // User did not grant location permission. Stop.
-      setState(() {
-        _isGettingLocation = false;
-      });
+  void _selectOnMap() async {
+    final initialLocation = _pickedlocation;
+
+    final pickedLocation = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute(
+        builder: (ctx) => MapScreen(
+          location:
+              initialLocation ??
+              const PlaceLocation(
+                latitude: 37.422,
+                longitude: -122.084,
+                address: '',
+              ),
+          isSelecting: true,
+        ),
+      ),
+    );
+    // To remove autofocus on title textfeld after user comme back from MapScreen.
+    if (!mounted) {
       return;
     }
+    FocusScope.of(context).unfocus();
+
+    if (pickedLocation == null) {
+      return;
+    }
+    _savedPlace(pickedLocation.latitude, pickedLocation.longitude);
   }
-
-  try {
-  final locationData = await location.getLocation();
-  final lat = locationData.latitude;
-  final long = locationData.longitude;
-
-  if (lat == null || long == null) {
-    throw Exception('Could not get latitude or longitude.');
-  }
- 
-  _savedPlace(lat, long);
-  
-
-} catch (error) {
-  print('An error occurred during location fetching: $error');
-  setState(() {
-    _isGettingLocation = false;
-  });
-}
-  // --- End of Location Fetching and API Call ---
-}
-
-void _selectOnMap()async{
-  final pickedLocation =  await Navigator.of(context).push<LatLng>(
-    MaterialPageRoute(builder: (ctx) => MapScreen()
-    ),
-  );
-  if(pickedLocation == null) return;
-
-  _savedPlace(pickedLocation.latitude,pickedLocation.longitude);
-}
 
   @override
   Widget build(BuildContext context) {

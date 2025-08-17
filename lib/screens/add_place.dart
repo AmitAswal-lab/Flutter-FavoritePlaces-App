@@ -17,6 +17,8 @@ class AddPlaceScreem extends ConsumerStatefulWidget {
 
 class _AddPlaceScreemState extends ConsumerState<AddPlaceScreem> {
   final _titleController = TextEditingController();
+  final _titleFocusNode = FocusNode();
+
   File? _selectedImage;
   PlaceLocation? _selectedLocation;
 
@@ -26,6 +28,7 @@ class _AddPlaceScreemState extends ConsumerState<AddPlaceScreem> {
     if(enteredTexted.isEmpty || _selectedImage == null || _selectedLocation == null){
       return;
     }
+    _titleFocusNode.unfocus();
     ref.read(userPlacesProvider.notifier).addPlace(enteredTexted, _selectedImage!, _selectedLocation!);
 
     Navigator.of(context).pop();
@@ -35,6 +38,7 @@ class _AddPlaceScreemState extends ConsumerState<AddPlaceScreem> {
   @override
   void dispose() {
     _titleController.dispose();
+    _titleFocusNode.dispose();
     super.dispose();
   }
 
@@ -50,6 +54,7 @@ class _AddPlaceScreemState extends ConsumerState<AddPlaceScreem> {
               decoration: InputDecoration(label: Text('Title')),
               controller: _titleController,
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              focusNode: _titleFocusNode,
               
             ),
             const SizedBox(height: 16),

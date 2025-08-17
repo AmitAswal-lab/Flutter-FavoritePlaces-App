@@ -15,45 +15,54 @@ class MapScreen extends StatefulWidget {
 
   final PlaceLocation location;
   final bool isSelecting;
-  
+
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
-  LatLng? _pickedlocation;
+  LatLng? _pickedLocation;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.isSelecting ? 'Pick your location' : 'Your location',
+          widget.isSelecting ? 'Pick Your Location' : 'Your Location',
         ),
         actions: [
           if (widget.isSelecting)
-            IconButton(onPressed: () {
-              Navigator.of(context).pop(_pickedlocation);
-            }, icon: const Icon(Icons.save)),
+            IconButton(
+              // Disable the button until a location has been picked.
+              onPressed: _pickedLocation == null
+                  ? null
+                  : () {
+                      Navigator.of(context).pop(_pickedLocation);
+                    },
+              icon: const Icon(Icons.save),
+            ),
         ],
       ),
       body: GoogleMap(
-        onTap: widget.isSelecting == false ? null :  (position){
-          setState(() {
-             _pickedlocation = position;
-          });     
-        },
+        onTap: widget.isSelecting
+            ? (position) {
+                setState(() {
+                  _pickedLocation = position;
+                });
+              }
+            : null,
+
         initialCameraPosition: CameraPosition(
-          target: _pickedlocation ??  LatLng(widget.location.latitude, widget.location.longitude),
+          target: LatLng(widget.location.latitude, widget.location.longitude),
           zoom: 16,
         ),
-        markers: (_pickedlocation == null && widget.isSelecting) ? {} : {
-             Marker(
+
+        markers: {
+          Marker(
             markerId: const MarkerId('m1'),
-            position: _pickedlocation ??
-                LatLng(
-                  widget.location.latitude,
-                  widget.location.longitude,
-                ),
+            position:
+                _pickedLocation ??
+                LatLng(widget.location.latitude, widget.location.longitude),
           ),
         },
       ),
