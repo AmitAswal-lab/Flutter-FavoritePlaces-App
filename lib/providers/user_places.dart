@@ -44,6 +44,17 @@ class UserPlacesNotifier extends StateNotifier<List<Place>> {
 
     state = places;
   }
+    void removePlace(Place place) async {
+
+    final db = await _getDb();
+    
+    await db.delete(
+      'user_places',
+      where: 'id = ?', 
+      whereArgs: [place.id],
+    );
+    state = state.where((p) => p.id != place.id).toList();
+  }
 
   void addPlace(String title, File image, PlaceLocation location) async {
     final appDir = await syspath.getApplicationDocumentsDirectory();

@@ -1,89 +1,81 @@
 import 'package:favorite_places/screens/places.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final colorScheme = ColorScheme.fromSeed(
-  brightness: Brightness.dark,
-  seedColor: const Color(0xFF7C4DFF), // Rich deep purple
-  surface: const Color(0xFF121016),   // Almost black for immersive feel // Slightly lighter for cards
-  secondary: const Color(0xFFD1C4E9), // Accent purple-pink
-  onSurface: Colors.white,
+final colorScheme = ColorScheme.dark().copyWith(
+  surface: const Color(0xFF1C1B1F),
+  primary: const Color(0xFFD0BCFF),
+  onPrimary: const Color(0xFF381E72),
+  secondary: const Color(0xFFFFC107),
+  onSecondary: const Color(0xFF332D00),
+  onSurface: const Color(0xFFE6E1E5),
+  onSurfaceVariant: const Color(0xFFCAC4D0),
+  outlineVariant: const Color(0xFF49454F),
 );
 
-final theme = ThemeData.dark(
+final theme = ThemeData(
   useMaterial3: true,
-).copyWith(
-  scaffoldBackgroundColor: colorScheme.surface,
   colorScheme: colorScheme,
-
-  textTheme: GoogleFonts.ubuntuCondensedTextTheme().copyWith(
-    titleSmall: GoogleFonts.ubuntuCondensed(
-      fontWeight: FontWeight.bold,
-      letterSpacing: 0.5,
-      color: Colors.white.withValues(alpha: 0.85),
-    ),
-    titleMedium: GoogleFonts.ubuntuCondensed(
-      fontWeight: FontWeight.bold,
-      letterSpacing: 0.75,
-      color: Colors.white.withValues(alpha: 0.85),
-    ),
-    titleLarge: GoogleFonts.ubuntuCondensed(
+  scaffoldBackgroundColor: colorScheme.surface,
+  textTheme: GoogleFonts.robotoSlabTextTheme().apply(
+    bodyColor: colorScheme.onSurface,
+    displayColor: colorScheme.onSurface,
+  ).copyWith(
+    titleLarge: GoogleFonts.robotoSlab(
       fontWeight: FontWeight.bold,
       fontSize: 22,
-      letterSpacing: 1.0,
-      color: Colors.white,
+      color: colorScheme.onSurface,
     ),
-  ),
-
-  appBarTheme: AppBarTheme(
-    iconTheme: const IconThemeData(
-      color: Colors.white, // Icon matches dark theme
-      size: 26,
-    ),
-    toolbarHeight: 70,
-    backgroundColor: colorScheme.primary.withValues(alpha: 0.90), // richer app bar color
-    foregroundColor: Colors.white,
-    elevation: 3,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        bottom: Radius.circular(5),
-      ),
-    ),
-    titleTextStyle: GoogleFonts.ubuntuCondensed(
+    titleMedium: GoogleFonts.robotoSlab(
       fontWeight: FontWeight.bold,
-      fontSize: 20,
-      letterSpacing: 0.75,
-      color: Colors.white,
+      color: colorScheme.onSurface,
     ),
-  ),
-
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: colorScheme.secondary..withValues(alpha: 0.85),
-      foregroundColor: colorScheme.onSurface,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-      shape: const StadiumBorder(),
-      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      elevation: 2,
+    titleSmall: GoogleFonts.robotoSlab(
+      fontWeight: FontWeight.bold,
+      color: colorScheme.onSurface,
     ),
   ),
 
   inputDecorationTheme: InputDecorationTheme(
-    labelStyle: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w500),
-    hintStyle: const TextStyle(color: Colors.white70),
-    enabledBorder: UnderlineInputBorder(
-      borderSide: BorderSide(color: colorScheme.onSurface, width: 1.5),
+    filled: true,
+    fillColor: colorScheme.surface,
+    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(color: colorScheme.secondary, width: 2),
     ),
-    focusedBorder: UnderlineInputBorder(
-      borderSide: BorderSide(color: colorScheme.onSurface, width: 1),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(color: colorScheme.outlineVariant),
+    ),
+  ),
+
+  textButtonTheme: TextButtonThemeData(
+    style: ButtonStyle(
+      foregroundColor: WidgetStateProperty.all(colorScheme.secondary),
+    ),
+  ),
+
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ButtonStyle(
+      backgroundColor: WidgetStateProperty.all(colorScheme.primary),
+      foregroundColor: WidgetStateProperty.all(colorScheme.onPrimary),
+      padding: WidgetStateProperty.all(
+        const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
     ),
   ),
 );
 
+
 void main() {
-  runApp( ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -92,9 +84,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Great Places',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      home: PlacesScreen(),
+      home: const PlacesScreen(),
     );
   }
 }
